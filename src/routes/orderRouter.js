@@ -6,8 +6,6 @@ const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 
 const orderRouter = express.Router();
 
-const tootoot = 0;
-
 orderRouter.docs = [
   {
     method: 'GET',
