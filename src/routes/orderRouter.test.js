@@ -72,3 +72,20 @@ test('getOrders', async () => {
   expect(res.status).toBe(200);
   expect(res.body).toBeInstanceOf(Object);
 });
+
+test('createOrder', async () => {
+  const order = {
+    franchiseId: 1,
+    storeId: 1,
+    items: [{ menuId: 1, description: 'Veggie', price: 0.05 }],
+  };
+
+  const res = await request(app)
+    .post('/api/order')
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send(order);
+
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty('order');
+  expect(res.body).toHaveProperty('jwt');
+});
