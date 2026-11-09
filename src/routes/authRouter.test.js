@@ -28,10 +28,10 @@ test('login', async () => {
 test('loginInvalid', async () => {
   const loginE = await request(app).put('/api/auth').send({ ...testUser, email: 'wrong' });
   expect(loginE.status).toBe(404);
-  expect(loginE.body.message).toBe('unknown user');
+  expect(loginE.body.message).toBe('invalid email or password');
   const loginP = await request(app).put('/api/auth').send({ ...testUser, password: 'wrong' });
   expect(loginP.status).toBe(404);
-  expect(loginP.body.message).toBe('unknown user');
+  expect(loginP.body.message).toBe('invalid email or password');
 });
 
 function expectValidJwt(potentialJwt) {
