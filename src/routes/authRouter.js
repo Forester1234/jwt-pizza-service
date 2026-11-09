@@ -83,6 +83,7 @@ authRouter.put(
       
       res.json({ user: user, token: auth });
     } catch (error) {
+      console.error(error);
       metrics.authAttempt(false);
       res.status(401).json({ message: 'invalid email or password' });
     }
