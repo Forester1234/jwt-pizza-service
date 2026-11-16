@@ -136,20 +136,20 @@ async function sendHttpMetrics() {
 
 // Active Users ================
 
-function trackActiveUser(userId) {
+function trackActiveUser(userId, isNew) {
   if (userId) {
-    activeUsers.add(userId);
+    if (isNew) {
+      activeUsers.add(userId);
+    } else {
+      activeUsers.delete(userId);
+    }
   }
 }
 
 async function sendUserMetrics() {
-  const count = activeUsers.size;
-
-  activeUsers.clear();
-
   const result = await sendMetricToGrafana(
     "active_users",
-    count,
+    activeUsers.size,
     "gauge",
     "{user}",
   );
