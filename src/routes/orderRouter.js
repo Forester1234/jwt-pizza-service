@@ -120,16 +120,16 @@ orderRouter.post(
     // start timer
     const startTime = Date.now();
 
-    try {
-      const factoryRequestBody = {
-        diner: {
-          id: req.user.id,
-          name: req.user.name,
-          email: req.user.email,
-        },
-        order,
-      };
+    const factoryRequestBody = {
+      diner: {
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+      },
+      order,
+    };
 
+    try {
       const r = await fetch(`${config.factory.url}/api/order`, {
         method: "POST",
         headers: {

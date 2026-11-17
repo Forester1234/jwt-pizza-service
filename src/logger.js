@@ -1,4 +1,3 @@
-const { request } = require("http");
 const config = require("./config");
 const loggingConfig = config.logging;
 
