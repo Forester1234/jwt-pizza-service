@@ -4,6 +4,8 @@ const config = require("../config.js");
 const { StatusCodeError } = require("../endpointHelper.js");
 const { Role } = require("../model/model.js");
 const dbModel = require("./dbModel.js");
+const logger = require("../logger.js");
+
 class DB {
   constructor() {
     this.initialized = this.initializeDatabase();
@@ -481,12 +483,35 @@ class DB {
   }
 
   async query(connection, sql, params) {
-    const [results] = await connection.execute(sql, params);
-    return results;
+    const start = Date.now();
+
+    try {
+      const [results] = await connection.execute(sql, params);
+
+      logger.log("info", "database", {
+        user: logger.getCurrentUser(),
+        query: sql,
+        durationMs: Date.now() - start,
+        success: true,
+      });
+
+      return results;
+    } catch (error) {
+      logger.log("error", "database", {
+        user: logger.getCurrentUser(),
+        query: sql,
+        durationMs: Date.now() - start,
+        success: false,
+        error: error.message,
+      });
+
+      throw error;
+    }
   }
 
   async getID(connection, key, value, table) {
-    const [rows] = await connection.execute(
+    const rows = await this.query(
+      connection,
       `SELECT id FROM ${table} WHERE ${key}=?`,
       [value],
     );
@@ -562,7 +587,8 @@ class DB {
   }
 
   async checkDatabaseExists(connection) {
-    const [rows] = await connection.execute(
+    const [rows] = await this.query(
+      connection,
       `SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?`,
       [config.db.connection.database],
     );

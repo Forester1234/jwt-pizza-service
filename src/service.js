@@ -6,6 +6,7 @@ const userRouter = require("./routes/userRouter.js");
 const version = require("./version.json");
 const config = require("./config.js");
 const metrics = require("./metrics.js");
+const logger = require("./logger.js");
 
 const app = express();
 
@@ -14,12 +15,16 @@ metrics.sendMetricsPeriodically(5000);
 app.use(express.json());
 app.use(metrics.requestTracker);
 app.use(setAuthUser);
+app.use(logger.contextMiddleware);
+app.use(logger.httpLogger);
+
 app.use((req, res, next) => {
   if (req.user) {
     metrics.trackActiveUser(req.user.id);
   }
   next();
 });
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");

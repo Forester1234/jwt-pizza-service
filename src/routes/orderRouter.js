@@ -6,6 +6,7 @@ const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
 
 const orderRouter = express.Router();
 const metrics = require("../metrics.js");
+const logger = require("../logger.js");
 
 orderRouter.docs = [
   {
@@ -118,23 +119,35 @@ orderRouter.post(
     const order = await DB.addDinerOrder(req.user, orderReq);
     // start timer
     const startTime = Date.now();
+
     try {
+      const factoryRequestBody = {
+        diner: {
+          id: req.user.id,
+          name: req.user.name,
+          email: req.user.email,
+        },
+        order,
+      };
+
       const r = await fetch(`${config.factory.url}/api/order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           authorization: `Bearer ${config.factory.apiKey}`,
         },
-        body: JSON.stringify({
-          diner: {
-            id: req.user.id,
-            name: req.user.name,
-            email: req.user.email,
-          },
-          order,
-        }),
+        body: JSON.stringify(factoryRequestBody),
       });
+
       const j = await r.json();
+
+      logger.log(r.ok ? "info" : "error", "factory", {
+        user: req.user.name,
+        requestBody: factoryRequestBody,
+        responseBody: j,
+        statusCode: r.status,
+      });
+
       // find time from timer
       const latency = Date.now() - startTime;
       // calculate order price
@@ -150,6 +163,12 @@ orderRouter.post(
         });
       }
     } catch (error) {
+      logger.log("error", "factory", {
+        user: req.user.name,
+        message: error.message,
+        requestBody: factoryRequestBody,
+      });
+
       metrics.pizzaPurchase(false, Date.now() - startTime, 0);
       throw error;
     }
