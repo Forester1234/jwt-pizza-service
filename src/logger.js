@@ -101,6 +101,12 @@ class Logger {
       if (typeof value === "string") {
         return value
           .replace(/Bearer\s+[^\s"' ]+/gi, "Bearer *****")
+          .replace(/\beyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g, "*****")
+          .replace(/[?&](?:token|jwt|api[_-]?key)=[^&\s]+/gi, (match) => {
+            const separator = match.startsWith("?") ? "?" : "&";
+            const key = match.slice(separator.length).split("=")[0];
+            return `${separator}${key}=*****`;
+          })
           .replace(/glc_[a-zA-Z0-9]+/g, "*****")
           .replace(/password\s*=\s*'[^']*'/gi, "password='*****'");
       }

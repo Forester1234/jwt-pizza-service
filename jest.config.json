@@ -1,5 +1,6 @@
 {
   "collectCoverage": true,
+  "testPathIgnorePatterns": ["/dist/"],
   "coverageReporters": ["json-summary", "text"],
   "coverageThreshold": {
     "global": {

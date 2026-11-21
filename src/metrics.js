@@ -26,7 +26,6 @@ let totalRevenue = 0;
 // Request latency
 let totalRequestLatency = 0;
 let completedRequests = 0;
-let totalPizzaLatency = 0;
 
 // Metric Sender ================
 
@@ -225,23 +224,33 @@ async function sendSystemMetrics() {
 
 // Pizza Metrics ================
 
-let pizzaLatencyCount = 0;
+let successfulPizzaLatency = 0;
+let successfulPizzaLatencyCount = 0;
+let failedPizzaLatency = 0;
+let failedPizzaLatencyCount = 0;
 
 function pizzaPurchase(success, latency, price) {
-  totalPizzaLatency += latency;
-  pizzaLatencyCount++;
-
   if (success) {
     successfulPurchases++;
+    successfulPizzaLatency += latency;
+    successfulPizzaLatencyCount++;
     totalRevenue += Number(price);
   } else {
     failedPurchases++;
+    failedPizzaLatency += latency;
+    failedPizzaLatencyCount++;
   }
 }
 
 async function sendPurchaseMetrics() {
-  const averagePizzaLatency =
-    pizzaLatencyCount > 0 ? totalPizzaLatency / pizzaLatencyCount : 0;
+  const averageSuccessfulPizzaLatency =
+    successfulPizzaLatencyCount > 0
+      ? successfulPizzaLatency / successfulPizzaLatencyCount
+      : 0;
+  const averageFailedPizzaLatency =
+    failedPizzaLatencyCount > 0
+      ? failedPizzaLatency / failedPizzaLatencyCount
+      : 0;
   const results = await Promise.all([
     sendMetricToGrafana(
       "pizza_sold_total",
@@ -257,8 +266,14 @@ async function sendPurchaseMetrics() {
     ),
     sendMetricToGrafana("pizza_revenue_total", totalRevenue, "sum", "USD"),
     sendMetricToGrafana(
-      "pizza_creation_latency_ms",
-      averagePizzaLatency,
+      "pizza_creation_success_latency_ms",
+      averageSuccessfulPizzaLatency,
+      "gauge",
+      "ms",
+    ),
+    sendMetricToGrafana(
+      "pizza_creation_failed_latency_ms",
+      averageFailedPizzaLatency,
       "gauge",
       "ms",
     ),
@@ -270,9 +285,10 @@ async function sendPurchaseMetrics() {
     }
   }
 
-  // Reset interval latency calculations
-  totalPizzaLatency = 0;
-  pizzaLatencyCount = 0;
+  successfulPizzaLatency = 0;
+  successfulPizzaLatencyCount = 0;
+  failedPizzaLatency = 0;
+  failedPizzaLatencyCount = 0;
 }
 
 // Latency Metrics ================

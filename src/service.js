@@ -10,7 +10,9 @@ const logger = require("./logger.js");
 
 const app = express();
 
-metrics.sendMetricsPeriodically(5000);
+if (process.env.NODE_ENV !== "test") {
+  metrics.sendMetricsPeriodically(5000);
+}
 
 app.use(express.json());
 app.use(metrics.requestTracker);
@@ -20,7 +22,7 @@ app.use(logger.httpLogger);
 
 app.use((req, res, next) => {
   if (req.user) {
-    metrics.trackActiveUser(req.user.id);
+    metrics.trackActiveUser(req.user.id, true);
   }
   next();
 });
